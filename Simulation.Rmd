@@ -1,0 +1,110 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Commençons par définir deux groupes:
+
+-   **Groupe traitement:** c'est le groupe des personnes à qui on a attribué un traitement (T=1).
+
+-   **Groupe de contrôle:** c'est le groupe des personnes à qui on n'a pas attrivué de traitement (T=0).
+
+On a opté pour la distribution des deux groupes pour une loi normale qui sera cependant de moyennes distinctes relativement à chaque groupe.
+
+On fixe également la taille N des deux échantillons à 1000 pour chaque groupe.
+
+```{r}
+#Parametres
+N=1000
+mean_treatment <- 110 # Moyenne de Ytreatment
+sd_treatment <- 10    # Ecart-type du groupe de treatment
+mean_control <- 120   # Moyenne de Ycontol
+sd_control <- 10      # Ecart-type du groupe de control
+```
+
+```{r}
+treatment_group <- rnorm(N, mean_treatment, sd_treatment) #Vecteur outcome du groupe de treatment
+control_group <- rnorm(N, mean_control, sd_control) #Vecteur outcome du groupe de control
+```
+
+```{r}
+# Attribution aléatoire du traitement 
+allocation <- sample(c(0, 1), size = N, replace = TRUE) #Vecteur contenant des valeurs dans {0,1} générée par une loi uniforme.
+```
+
+Le vecteur allocation nous permettra d'attribuer le traitement aux individus d'une façon aléatoire et indépendante.
+
+```{r}
+# Simulation des résultats
+simulated_results <- ifelse(allocation == 0, control_group, treatment_group)
+```
+
+Pour accèder au groupe de treatement (resp groupe control), on utilise:
+
+-   simulated_results[allocation == 1] : groupe des traités avec une variation aléatoire
+
+-   simulated_results[allocation == 0] : groupe des non-traités avec une variation aléatoire
+
+```{r}
+# Analyse statistique
+treatment_mean <- mean(simulated_results[allocation == 1])
+control_mean <- mean(simulated_results[allocation == 0])
+```
+
+Visualisation l'effet du traitement.
+
+```{r}
+effet_treat=treatment_mean - control_mean
+effet_treat
+```
+
+## Observational Data:
+
+### OLS estimator-Regression adjustment-gformula
+
+```{r}
+Nt=150
+Nc=133
+meanX_ageT<-65
+sd_XT <- 5
+meanX_ageC <-20
+sd_XC <-5
+```
+
+```{r}
+Xt<-rnorm(Nt, meanX_ageT, sd_XT)
+Xc<-rnorm(Nc, meanX_ageC, sd_XC)
+```
+
+```{r}
+Yt<-runif(Nt,70,128)
+Yc<-runif(Nc,70,128)
+X<-c(Xt,Xc)
+```
+
+```{r}
+#Tracer le premier graphique
+plot(Xt, Yt,type = "p", col = "blue", xlab = "X", ylab = "Y",xlim =X)
+#Tracer le second graphique
+lines(Xc, Yc,type = "p", col = "red")
+```
+
+```{r}
+#regression lineaire:
+res1 <-lm(Yt~Xt)
+res2 <-lm(Yc~Xc)
+```
+
+```{r}
+Y_est1 <- as.matrix(cbind(res1$fitted.values))
+Y_est2 <- as.matrix(cbind(res2$fitted.values))
+```
+
+```{r}
+#Tracer le premier graphique
+plot(Xt, Yt,type = "p", col = "blue", xlab = "X", ylab = "Y")
+#Tracer le second graphique
+lines(Xc, Yc,type = "p", col = "red")
+lines(Xt,Y_est1,type="l",col="blue")
+lines(Xc,Y_est2,type="l",col="red")
+```
