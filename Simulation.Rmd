@@ -46,7 +46,7 @@ Pour accèder au groupe de treatement (resp groupe control), on utilise:
 -   simulated_results[allocation == 0] : groupe des non-traités avec une variation aléatoire
 
 ```{r}
-# Analyse statistique
+# Analyse statistique des estimations
 treatment_mean <- mean(simulated_results[allocation == 1])
 control_mean <- mean(simulated_results[allocation == 0])
 ```
@@ -56,6 +56,27 @@ Visualisation l'effet du traitement.
 ```{r}
 effet_treat=treatment_mean - control_mean
 effet_treat
+```
+
+On veut tester cet estimateur par un test de student:
+
+```{r}
+result<-t.test(simulated_results[allocation==1]-simulated_results[allocation==0],y=NULL,alternative = "two.sided",mu = mean_control-mean_treatment,var.equal =TRUE)
+result
+```
+
+On obtient une P-value inférieur à 0.05 donc le test est significatif. Un résultat qui peut être vérifier autrement
+
+```{r}
+df <- result$parameter
+tobs <- result$statistic
+alpha <- 0.05
+critical_value <- qt(1 - alpha/2, df)
+if (abs(tobs) > critical_value) {
+  cat("Le test est significatif.\n")
+} else {
+  cat("Le test n'est pas significatif.\n")
+}
 ```
 
 ## Observational Data:
@@ -69,6 +90,8 @@ meanX_ageT<-65
 sd_XT <- 5
 meanX_ageC <-20
 sd_XC <-5
+To<-10
+alpha<-15
 ```
 
 ```{r}
@@ -77,14 +100,15 @@ Xc<-rnorm(Nc, meanX_ageC, sd_XC)
 ```
 
 ```{r}
-Yt<-runif(Nt,70,128)
-Yc<-runif(Nc,70,128)
+Yt<-To+alpha*Xt
+Yc<-alpha*Xc
 X<-c(Xt,Xc)
 ```
 
 ```{r}
 #Tracer le premier graphique
-plot(Xt, Yt,type = "p", col = "blue", xlab = "X", ylab = "Y",xlim =X)
+plot(Xt, Yt,type = "p", col = "blue", xlab = "X", ylab = "Y",xlim=c(0,90),ylim=c(100,1400))
+
 #Tracer le second graphique
 lines(Xc, Yc,type = "p", col = "red")
 ```
@@ -98,13 +122,25 @@ res2 <-lm(Yc~Xc)
 ```{r}
 Y_est1 <- as.matrix(cbind(res1$fitted.values))
 Y_est2 <- as.matrix(cbind(res2$fitted.values))
+X<-seq(from = 0, to = 85, length.out = 1000)
+theta.est1 <- res1$coefficients
+theta.est2 <- res2$coefficients
 ```
 
 ```{r}
 #Tracer le premier graphique
-plot(Xt, Yt,type = "p", col = "blue", xlab = "X", ylab = "Y")
+plot(Xt, Yt,type = "p", col = "blue", xlab = "X", ylab = "Y",xlim=c(0,90),ylim=c(100,1400))
 #Tracer le second graphique
 lines(Xc, Yc,type = "p", col = "red")
-lines(Xt,Y_est1,type="l",col="blue")
-lines(Xc,Y_est2,type="l",col="red")
+lines(X,theta.est1[2]*X+theta.est1[1],type="l",col="blue")
+lines(X,theta.est2[2]*X+theta.est2[1],type="l",col="red")
+```
+
+```{r}
+tau<-theta.est1[1]+sum(theta.est1[2]*X)-theta.est2[1]-sum(theta.est2[2]*X)
+tau
+```
+
+```{r}
+
 ```
