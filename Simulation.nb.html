@@ -1759,80 +1759,63 @@ display: none;
 <li><p><strong>Groupe de contrôle:</strong> c’est le groupe des
 personnes à qui on n’a pas attrivué de traitement (T=0).</p></li>
 </ul>
-<p>On a opté pour la distribution des deux groupes pour une loi normale
-qui sera cependant de moyennes distinctes relativement à chaque
-groupe.</p>
-<p>On fixe également la taille N des deux échantillons à 1000 pour
-chaque groupe.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1BhcmFtZXRyZXNcbk49MTAwMFxubWVhbl90cmVhdG1lbnQgPC0gMTEwICMgTW95ZW5uZSBkZSBZdHJlYXRtZW50XG5zZF90cmVhdG1lbnQgPC0gMTAgICAgIyBFY2FydC10eXBlIGR1IGdyb3VwZSBkZSB0cmVhdG1lbnRcbm1lYW5fY29udHJvbCA8LSAxMjAgICAjIE1veWVubmUgZGUgWWNvbnRvbFxuc2RfY29udHJvbCA8LSAxMCAgICAgICMgRWNhcnQtdHlwZSBkdSBncm91cGUgZGUgY29udHJvbFxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1BhcmFtZXRyZXNcbk49MTAwMFxucD00ICAgICAgICAgICAgICAgICAgICAgICAgI0xlIG5vbWJyZSBkZSBjb3ZhcmlhbnRlc1xubXU9cmVwKDEyMCxwKSAgICAgICAgICAgICAgI21veWVubmUgcG91ciBjaGFxdWUgdmVjdGV1ciBkZSBjb3ZhcmlhbnRlc1xuc2lnbWE9ZGlhZygzMCxwKSAgICAgICAgICAgI8OpY2FydC10eXBlIHBvdXIgY2hhcXVlIHZlY3RldXJcbnM9YygwLjIsMC43LC0xLDAuMykgICAgICAgICNjb2VmZmljaWVudHMgZGUgY2hhcXVlIGNvdmFyaWFudGUgZGFucyBsYSByZWdyZXNzaW9uXG5Ubz0xMCAgICAgICAgICAgICAgICAgICAgICAjcGFyYW3DqHRyZSBhIGVzdGltZXJcbnMwPTkwXG5gYGAifQ== -->
 <pre class="r"><code>#Parametres
 N=1000
-mean_treatment &lt;- 110 # Moyenne de Ytreatment
-sd_treatment &lt;- 10    # Ecart-type du groupe de treatment
-mean_control &lt;- 120   # Moyenne de Ycontol
-sd_control &lt;- 10      # Ecart-type du groupe de control</code></pre>
+p=4                        #Le nombre de covariantes
+mu=rep(120,p)              #moyenne pour chaque vecteur de covariantes
+sigma=diag(30,p)           #écart-type pour chaque vecteur
+s=c(0.2,0.7,-1,0.3)        #coefficients de chaque covariante dans la regression
+To=10                      #paramètre a estimer
+s0=90</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudHJlYXRtZW50X2dyb3VwIDwtIHJub3JtKE4sIG1lYW5fdHJlYXRtZW50LCBzZF90cmVhdG1lbnQpICNWZWN0ZXVyIG91dGNvbWUgZHUgZ3JvdXBlIGRlIHRyZWF0bWVudFxuY29udHJvbF9ncm91cCA8LSBybm9ybShOLCBtZWFuX2NvbnRyb2wsIHNkX2NvbnRyb2wpICNWZWN0ZXVyIG91dGNvbWUgZHUgZ3JvdXBlIGRlIGNvbnRyb2xcbmBgYCJ9 -->
-<pre class="r"><code>treatment_group &lt;- rnorm(N, mean_treatment, sd_treatment) #Vecteur outcome du groupe de treatment
-control_group &lt;- rnorm(N, mean_control, sd_control) #Vecteur outcome du groupe de control</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2Nyw6lhdGlvbiBkZXMgY292YXJpYWJsZXNcbmNvdmFyaWF0ZXM8LXJtdm5vcm0obj01MCpOLG11LHNpZ21hKSAjY3LDqWF0aW9uIGRlIGNvdmFyaWFibGVzIHF1aSBzdWl2ZW50IGxhIGxvaSBub3JtYWxlLlxuREY8LWFzLmRhdGEuZnJhbWUoY292YXJpYXRlcylcbm5hbWVzKERGKTwtcGFzdGUoXCJYXCIsMTpwLHNlcD1cIlwiKSAjb24gbm9tbWVyYSBsZXMgY292YXJpYWJsZXMgWGkuXG5jb3ZhcmlhdGVzX25hbWVzIDwtbmFtZXMoREYpXG5UPC1zYW1wbGUoYygwLCAxKSwgc2l6ZSA9IDUwKk4sIHJlcGxhY2UgPSBUUlVFLCBwcm9iID0gYygwLjUsIDAuNSkpXG5ERiRUPC1UXG5ldGEgPC0gYXMudmVjdG9yKGNvdmFyaWF0ZXMlKiVzK1RvKlQrczApXG5ERiRZPC1ldGFcbiNyZXBhcnRpdGlvbiBwYXIgZ3JvdXBlIGRlIHRyYWl0ZW1lbnQgZXQgZGUgY29udHJvbFxuY29udHJvbF9ncm91cDwtc3Vic2V0KERGJFksIERGJFQgPT0gMClcbnRyZWF0bWVudF9ncm91cDwtc3Vic2V0KERGJFksREYkVD09MSlcbmBgYCJ9 -->
+<pre class="r"><code>#création des covariables
+covariates&lt;-rmvnorm(n=50*N,mu,sigma) #création de covariables qui suivent la loi normale.
+DF&lt;-as.data.frame(covariates)
+names(DF)&lt;-paste(&quot;X&quot;,1:p,sep=&quot;&quot;) #on nommera les covariables Xi.
+covariates_names &lt;-names(DF)
+T&lt;-sample(c(0, 1), size = 50*N, replace = TRUE, prob = c(0.5, 0.5))
+DF$T&lt;-T
+eta &lt;- as.vector(covariates%*%s+To*T+s0)
+DF$Y&lt;-eta
+#repartition par groupe de traitement et de control
+control_group&lt;-subset(DF$Y, DF$T == 0)
+treatment_group&lt;-subset(DF$Y,DF$T==1)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBBdHRyaWJ1dGlvbiBhbMOpYXRvaXJlIGR1IHRyYWl0ZW1lbnQgXG5hbGxvY2F0aW9uIDwtIHNhbXBsZShjKDAsIDEpLCBzaXplID0gTiwgcmVwbGFjZSA9IFRSVUUpICNWZWN0ZXVyIGNvbnRlbmFudCBkZXMgdmFsZXVycyBkYW5zIHswLDF9IGfDqW7DqXLDqWUgcGFyIHVuZSBsb2kgdW5pZm9ybWUuXG5gYGAifQ== -->
-<pre class="r"><code># Attribution aléatoire du traitement 
-allocation &lt;- sample(c(0, 1), size = N, replace = TRUE) #Vecteur contenant des valeurs dans {0,1} générée par une loi uniforme.</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Le vecteur allocation nous permettra d’attribuer le traitement aux
-individus d’une façon aléatoire et indépendante.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTaW11bGF0aW9uIGRlcyByw6lzdWx0YXRzXG5zaW11bGF0ZWRfcmVzdWx0cyA8LSBpZmVsc2UoYWxsb2NhdGlvbiA9PSAwLCBjb250cm9sX2dyb3VwLCB0cmVhdG1lbnRfZ3JvdXApXG5gYGAifQ== -->
-<pre class="r"><code># Simulation des résultats
-simulated_results &lt;- ifelse(allocation == 0, control_group, treatment_group)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Pour accèder au groupe de treatement (resp groupe control), on
-utilise:</p>
-<ul>
-<li><p>simulated_results[allocation == 1] : groupe des traités avec une
-variation aléatoire</p></li>
-<li><p>simulated_results[allocation == 0] : groupe des non-traités avec
-une variation aléatoire</p></li>
-</ul>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBBbmFseXNlIHN0YXRpc3RpcXVlIGRlcyBlc3RpbWF0aW9uc1xudHJlYXRtZW50X21lYW4gPC0gbWVhbihzaW11bGF0ZWRfcmVzdWx0c1thbGxvY2F0aW9uID09IDFdKVxuY29udHJvbF9tZWFuIDwtIG1lYW4oc2ltdWxhdGVkX3Jlc3VsdHNbYWxsb2NhdGlvbiA9PSAwXSlcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBBbmFseXNlIHN0YXRpc3RpcXVlIGRlcyBlc3RpbWF0aW9uc1xudHJlYXRtZW50X21lYW5fZXN0IDwtIG1lYW4odHJlYXRtZW50X2dyb3VwKVxuY29udHJvbF9tZWFuX2VzdCA8LSBtZWFuKGNvbnRyb2xfZ3JvdXApXG5gYGAifQ== -->
 <pre class="r"><code># Analyse statistique des estimations
-treatment_mean &lt;- mean(simulated_results[allocation == 1])
-control_mean &lt;- mean(simulated_results[allocation == 0])</code></pre>
+treatment_mean_est &lt;- mean(treatment_group)
+control_mean_est &lt;- mean(control_group)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Visualisation l’effet du traitement.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZWZmZXRfdHJlYXQ9dHJlYXRtZW50X21lYW4gLSBjb250cm9sX21lYW5cbmVmZmV0X3RyZWF0XG5gYGAifQ== -->
-<pre class="r"><code>effet_treat=treatment_mean - control_mean
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZWZmZXRfdHJlYXQ9dHJlYXRtZW50X21lYW5fZXN0IC0gY29udHJvbF9tZWFuX2VzdFxuZWZmZXRfdHJlYXRcbmBgYCJ9 -->
+<pre class="r"><code>effet_treat=treatment_mean_est - control_mean_est
 effet_treat</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDEwLjA3OTY1XG4ifQ== -->
+<pre><code>[1] 10.07965</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>On veut tester cet estimateur par un test de student:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzdWx0PC10LnRlc3Qoc2ltdWxhdGVkX3Jlc3VsdHNbYWxsb2NhdGlvbj09MV0tc2ltdWxhdGVkX3Jlc3VsdHNbYWxsb2NhdGlvbj09MF0seT1OVUxMLGFsdGVybmF0aXZlID0gXCJ0d28uc2lkZWRcIixtdSA9IG1lYW5fY29udHJvbC1tZWFuX3RyZWF0bWVudCx2YXIuZXF1YWwgPVRSVUUpXG5gYGAifQ== -->
-<pre class="r"><code>result&lt;-t.test(simulated_results[allocation==1]-simulated_results[allocation==0],y=NULL,alternative = &quot;two.sided&quot;,mu = mean_control-mean_treatment,var.equal =TRUE)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzdWx0PC10LnRlc3QodHJlYXRtZW50X2dyb3VwLWNvbnRyb2xfZ3JvdXAseT1OVUxMLGFsdGVybmF0aXZlID0gXCJncmVhdGVyXCIsbXUgPSBUbyx2YXIuZXF1YWwgPUZBTFNFKVxuYGBgIn0= -->
+<pre class="r"><code>result&lt;-t.test(treatment_group-control_group,y=NULL,alternative = &quot;greater&quot;,mu = To,var.equal =FALSE)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiQXZpcyA6IGxvbmdlciBvYmplY3QgbGVuZ3RoIGlzIG5vdCBhIG11bHRpcGxlIG9mIHNob3J0ZXIgb2JqZWN0IGxlbmd0aFxuIn0= -->
 <pre><code>Avis : longer object length is not a multiple of shorter object length</code></pre>
@@ -1840,25 +1823,37 @@ effet_treat</code></pre>
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVzdWx0XG5gYGAifQ== -->
 <pre class="r"><code>result</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5cdE9uZSBTYW1wbGUgdC10ZXN0XG5cbmRhdGE6ICBzaW11bGF0ZWRfcmVzdWx0c1thbGxvY2F0aW9uID09IDFdIC0gc2ltdWxhdGVkX3Jlc3VsdHNbYWxsb2NhdGlvbiA9PSAwXVxudCA9IC0zMS44NjQsIGRmID0gNTEyLCBwLXZhbHVlIDwgMi4yZS0xNlxuYWx0ZXJuYXRpdmUgaHlwb3RoZXNpczogdHJ1ZSBtZWFuIGlzIG5vdCBlcXVhbCB0byAxMFxuOTUgcGVyY2VudCBjb25maWRlbmNlIGludGVydmFsOlxuIC0xMS41NjM4NzAgIC05LjA1OTIzNlxuc2FtcGxlIGVzdGltYXRlczpcbm1lYW4gb2YgeCBcbi0xMC4zMTE1NSBcbiJ9 -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5cdE9uZSBTYW1wbGUgdC10ZXN0XG5cbmRhdGE6ICB0cmVhdG1lbnRfZ3JvdXAgLSBjb250cm9sX2dyb3VwXG50ID0gMS4yNjI2LCBkZiA9IDI1MTI2LCBwLXZhbHVlID0gMC4xMDM0XG5hbHRlcm5hdGl2ZSBoeXBvdGhlc2lzOiB0cnVlIG1lYW4gaXMgZ3JlYXRlciB0aGFuIDEwXG45NSBwZXJjZW50IGNvbmZpZGVuY2UgaW50ZXJ2YWw6XG4gOS45NzYzMDkgICAgICBJbmZcbnNhbXBsZSBlc3RpbWF0ZXM6XG5tZWFuIG9mIHggXG4gMTAuMDc4MjUgXG4ifQ== -->
 <pre><code>
     One Sample t-test
 
-data:  simulated_results[allocation == 1] - simulated_results[allocation == 0]
-t = -31.864, df = 512, p-value &lt; 2.2e-16
-alternative hypothesis: true mean is not equal to 10
+data:  treatment_group - control_group
+t = 1.2626, df = 25126, p-value = 0.1034
+alternative hypothesis: true mean is greater than 10
 95 percent confidence interval:
- -11.563870  -9.059236
+ 9.976309      Inf
 sample estimates:
 mean of x 
--10.31155 </code></pre>
+ 10.07825 </code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>On obtient une P-value inférieur à 0.05 donc le test est
-significatif. Un résultat qui peut être vérifier autrement</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYgPC0gcmVzdWx0JHBhcmFtZXRlclxudG9icyA8LSByZXN1bHQkc3RhdGlzdGljXG5hbHBoYSA8LSAwLjA1XG5jcml0aWNhbF92YWx1ZSA8LSBxdCgxIC0gYWxwaGEvMiwgZGYpXG5pZiAoYWJzKHRvYnMpID4gY3JpdGljYWxfdmFsdWUpIHtcbiAgY2F0KFwiTGUgdGVzdCBlc3Qgc2lnbmlmaWNhdGlmLlxcblwiKVxufSBlbHNlIHtcbiAgY2F0KFwiTGUgdGVzdCBuJ2VzdCBwYXMgc2lnbmlmaWNhdGlmLlxcblwiKVxufVxuYGBgIn0= -->
+<pre class="r"><code>df &lt;- result$parameter
+tobs &lt;- result$statistic
+alpha &lt;- 0.05
+critical_value &lt;- qt(1 - alpha/2, df)
+if (abs(tobs) &gt; critical_value) {
+  cat(&quot;Le test est significatif.\n&quot;)
+} else {
+  cat(&quot;Le test n&#39;est pas significatif.\n&quot;)
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTGUgdGVzdCBuJ2VzdCBwYXMgc2lnbmlmaWNhdGlmLlxuIn0= -->
+<pre><code>Le test n&#39;est pas significatif.</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <div id="observational-data" class="section level2">
@@ -1961,11 +1956,81 @@ tau</code></pre>
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWVhblhfYWdlPC00M1xuc2RfWDwtMTBcblg8LSBybm9ybShOdCwgbWVhblhfYWdlLCBzZF9YKVxuXG5gYGAifQ== -->
+<pre class="r"><code>meanX_age&lt;-43
+sd_X&lt;-10
+X&lt;- rnorm(Nt, meanX_age, sd_X)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="psw" class="section level2">
+<h2>PSW</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29tcHV0ZV9pcHN3IDwtIGZ1bmN0aW9uKERGLCBub3JtYWxpemVkID0gRkFMU0UsIGVzdGltYXRpb24gPSBcImxvZ2l0XCIsIGNvdmFyaWF0ZXMgPSBcIkFsbFwiKXtcbiAgXG4gIE4gPC0gbnJvdyhERilcbiAgbiA8LSBucm93KERGW0RGJFQgPT0xLCBdKVxuICBtIDwtIG5yb3coREZbREYkVCA9PTAsIF0pXG4gIFxuICAjIyBzaW1wbHkgZGVsZXRlIHRoaXMgcGFyYWdyYXBoIHdoZW4gcmVtb3ZhbCBvZiB0aGUgY292YXJpYXRlcyBwYXJhbWV0ZXJcbiAgaWYgKGNvdmFyaWF0ZXMgPT0gXCJBbGxcIil7XG4gICAgdGVtcCA8LSBERlxuICB9IGVsc2UgaWYgKGNvdmFyaWF0ZXMgPT0gXCJYMVwiKXtcbiAgICB0ZW1wIDwtIERGWywgYyhcIlgxXCIsIFwiVlwiLCBcIkFcIiwgXCJZXCIpXVxuICB9IGVsc2UgaWYgKGNvdmFyaWF0ZXMgPT0gXCItWDFcIil7XG4gICAgdGVtcCA8LSBERlssICEobmFtZXMoREYpICVpbiUgIGMoXCJYMVwiKSldXG4gIH0gZWxzZSB7XG4gICAgcHJpbnQoXCJDb3ZhcmlhdGVzIHBhcmFtZXRlcnMgbXVzdCBiZSBBbGwsIFgxLCAtWDEuXCIpXG4gICAgYnJlYWtcbiAgfVxuICBcbiAgIyBFc3RpbWF0aW9uIG9mIFAoViA9IDEgfCBYKVxuICAjIHAgPC0tIFAoViA9IDEgfCBYKSBcbiAgXG4gIGlmIChlc3RpbWF0aW9uID09IFwibG9naXRcIil7XG4gICAgXG4gICAgIyB3aXRoIGxvZ2lzdGljIHJlZ3Jlc3Npb25cbiAgICBwLmZpdCAgPC0gZ2xtKERGJFkgfi4sIGZhbWlseSA9IGJpbm9taWFsKFwibG9naXRcIiksIGRhdGEgPSB0ZW1wWywgIW5hbWVzKHRlbXApICVpbiUgYyhcIkFcIiwgXCJZXCIpXSlcbiAgICBwIDwtIHByZWRpY3QocC5maXQsIHR5cGUgPSBcInJlc3BvbnNlXCIsIG5ld2RhdGEgPSB0ZW1wKVxuICAgIFxuICB9IFxuICBlbHNlIGlmIChlc3RpbWF0aW9uID09IFwiZm9yZXN0XCIpIHtcbiAgICBicmVha1xuICB9IFxuICBlbHNlIHtcbiAgICBwcmludChcIkVzdGltYXRpb24gcGFyYW1ldGVyIHNob3VsZCBiZSBmb3Jlc3Qgb3IgbG9naXQuXCIpXG4gICAgYnJlYWtcbiAgfVxuICBcbiAgIyBTdG9yZSBvZGRzXG4gIHRlbXAkb2RkcyA8LSAoKDEgLSBwKS9wKVxuICBcbiAgIyBLZWVwIG9ubHkgUkNUIGZvciB0aGUgcmVzdCBvZiB0aGUgY2FsY3VsdXNcbiAgdGVtcCA8LSB0ZW1wW3RlbXAkVCA9PSAxLF1cbiAgXG4gIGlmIChub3JtYWxpemVkID09IEZBTFNFKXtcbiAgICB0YXVfaXBzdyA8LSAoMi9tKSp3aXRoKHRlbXAsIHN1bShvZGRzKkEqWSAtIG9kZHMqKDEtQSkqWSkpICBcbiAgfSBlbHNlIHtcbiAgICB0YXVfaXBzdyA8LSB3aXRoKHRlbXAsIHN1bShvZGRzKkEqWS9zdW0ob2RkcypBKSAtIG9kZHMqKDEtQSkqWS9zdW0ob2RkcyooMS1BKSkpKVxuICB9XG4gIFxuICByZXR1cm4odGF1X2lwc3cpXG59XG5cbmBgYCJ9 -->
+<pre class="r"><code>compute_ipsw &lt;- function(DF, normalized = FALSE, estimation = &quot;logit&quot;, covariates = &quot;All&quot;){
+  
+  N &lt;- nrow(DF)
+  n &lt;- nrow(DF[DF$T ==1, ])
+  m &lt;- nrow(DF[DF$T ==0, ])
+  
+  ## simply delete this paragraph when removal of the covariates parameter
+  if (covariates == &quot;All&quot;){
+    temp &lt;- DF
+  } else if (covariates == &quot;X1&quot;){
+    temp &lt;- DF[, c(&quot;X1&quot;, &quot;V&quot;, &quot;A&quot;, &quot;Y&quot;)]
+  } else if (covariates == &quot;-X1&quot;){
+    temp &lt;- DF[, !(names(DF) %in%  c(&quot;X1&quot;))]
+  } else {
+    print(&quot;Covariates parameters must be All, X1, -X1.&quot;)
+    break
+  }
+  
+  # Estimation of P(V = 1 | X)
+  # p &lt;-- P(V = 1 | X) 
+  
+  if (estimation == &quot;logit&quot;){
+    
+    # with logistic regression
+    p.fit  &lt;- glm(DF$Y ~., family = binomial(&quot;logit&quot;), data = temp[, !names(temp) %in% c(&quot;A&quot;, &quot;Y&quot;)])
+    p &lt;- predict(p.fit, type = &quot;response&quot;, newdata = temp)
+    
+  } 
+  else if (estimation == &quot;forest&quot;) {
+    break
+  } 
+  else {
+    print(&quot;Estimation parameter should be forest or logit.&quot;)
+    break
+  }
+  
+  # Store odds
+  temp$odds &lt;- ((1 - p)/p)
+  
+  # Keep only RCT for the rest of the calculus
+  temp &lt;- temp[temp$T == 1,]
+  
+  if (normalized == FALSE){
+    tau_ipsw &lt;- (2/m)*with(temp, sum(odds*A*Y - odds*(1-A)*Y))  
+  } else {
+    tau_ipsw &lt;- with(temp, sum(odds*A*Y/sum(odds*A) - odds*(1-A)*Y/sum(odds*(1-A))))
+  }
+  
+  return(tau_ipsw)
+}
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
 <!-- rnb-chunk-end -->
 </div>
-</div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpDb21tZW7Dp29ucyBwYXIgZMOpZmluaXIgZGV1eCBncm91cGVzOg0KDQotICAgKipHcm91cGUgdHJhaXRlbWVudDoqKiBjJ2VzdCBsZSBncm91cGUgZGVzIHBlcnNvbm5lcyDDoCBxdWkgb24gYSBhdHRyaWJ1w6kgdW4gdHJhaXRlbWVudCAoVD0xKS4NCg0KLSAgICoqR3JvdXBlIGRlIGNvbnRyw7RsZToqKiBjJ2VzdCBsZSBncm91cGUgZGVzIHBlcnNvbm5lcyDDoCBxdWkgb24gbidhIHBhcyBhdHRyaXZ1w6kgZGUgdHJhaXRlbWVudCAoVD0wKS4NCg0KT24gYSBvcHTDqSBwb3VyIGxhIGRpc3RyaWJ1dGlvbiBkZXMgZGV1eCBncm91cGVzIHBvdXIgdW5lIGxvaSBub3JtYWxlIHF1aSBzZXJhIGNlcGVuZGFudCBkZSBtb3llbm5lcyBkaXN0aW5jdGVzIHJlbGF0aXZlbWVudCDDoCBjaGFxdWUgZ3JvdXBlLg0KDQpPbiBmaXhlIMOpZ2FsZW1lbnQgbGEgdGFpbGxlIE4gZGVzIGRldXggw6ljaGFudGlsbG9ucyDDoCAxMDAwIHBvdXIgY2hhcXVlIGdyb3VwZS4NCg0KYGBge3J9DQojUGFyYW1ldHJlcw0KTj0xMDAwDQptZWFuX3RyZWF0bWVudCA8LSAxMTAgIyBNb3llbm5lIGRlIFl0cmVhdG1lbnQNCnNkX3RyZWF0bWVudCA8LSAxMCAgICAjIEVjYXJ0LXR5cGUgZHUgZ3JvdXBlIGRlIHRyZWF0bWVudA0KbWVhbl9jb250cm9sIDwtIDEyMCAgICMgTW95ZW5uZSBkZSBZY29udG9sDQpzZF9jb250cm9sIDwtIDEwICAgICAgIyBFY2FydC10eXBlIGR1IGdyb3VwZSBkZSBjb250cm9sDQpgYGANCg0KYGBge3J9DQp0cmVhdG1lbnRfZ3JvdXAgPC0gcm5vcm0oTiwgbWVhbl90cmVhdG1lbnQsIHNkX3RyZWF0bWVudCkgI1ZlY3RldXIgb3V0Y29tZSBkdSBncm91cGUgZGUgdHJlYXRtZW50DQpjb250cm9sX2dyb3VwIDwtIHJub3JtKE4sIG1lYW5fY29udHJvbCwgc2RfY29udHJvbCkgI1ZlY3RldXIgb3V0Y29tZSBkdSBncm91cGUgZGUgY29udHJvbA0KYGBgDQoNCmBgYHtyfQ0KIyBBdHRyaWJ1dGlvbiBhbMOpYXRvaXJlIGR1IHRyYWl0ZW1lbnQgDQphbGxvY2F0aW9uIDwtIHNhbXBsZShjKDAsIDEpLCBzaXplID0gTiwgcmVwbGFjZSA9IFRSVUUpICNWZWN0ZXVyIGNvbnRlbmFudCBkZXMgdmFsZXVycyBkYW5zIHswLDF9IGfDqW7DqXLDqWUgcGFyIHVuZSBsb2kgdW5pZm9ybWUuDQpgYGANCg0KTGUgdmVjdGV1ciBhbGxvY2F0aW9uIG5vdXMgcGVybWV0dHJhIGQnYXR0cmlidWVyIGxlIHRyYWl0ZW1lbnQgYXV4IGluZGl2aWR1cyBkJ3VuZSBmYcOnb24gYWzDqWF0b2lyZSBldCBpbmTDqXBlbmRhbnRlLg0KDQpgYGB7cn0NCiMgU2ltdWxhdGlvbiBkZXMgcsOpc3VsdGF0cw0Kc2ltdWxhdGVkX3Jlc3VsdHMgPC0gaWZlbHNlKGFsbG9jYXRpb24gPT0gMCwgY29udHJvbF9ncm91cCwgdHJlYXRtZW50X2dyb3VwKQ0KYGBgDQoNClBvdXIgYWNjw6hkZXIgYXUgZ3JvdXBlIGRlIHRyZWF0ZW1lbnQgKHJlc3AgZ3JvdXBlIGNvbnRyb2wpLCBvbiB1dGlsaXNlOg0KDQotICAgc2ltdWxhdGVkX3Jlc3VsdHNbYWxsb2NhdGlvbiA9PSAxXSA6IGdyb3VwZSBkZXMgdHJhaXTDqXMgYXZlYyB1bmUgdmFyaWF0aW9uIGFsw6lhdG9pcmUNCg0KLSAgIHNpbXVsYXRlZF9yZXN1bHRzW2FsbG9jYXRpb24gPT0gMF0gOiBncm91cGUgZGVzIG5vbi10cmFpdMOpcyBhdmVjIHVuZSB2YXJpYXRpb24gYWzDqWF0b2lyZQ0KDQpgYGB7cn0NCiMgQW5hbHlzZSBzdGF0aXN0aXF1ZSBkZXMgZXN0aW1hdGlvbnMNCnRyZWF0bWVudF9tZWFuIDwtIG1lYW4oc2ltdWxhdGVkX3Jlc3VsdHNbYWxsb2NhdGlvbiA9PSAxXSkNCmNvbnRyb2xfbWVhbiA8LSBtZWFuKHNpbXVsYXRlZF9yZXN1bHRzW2FsbG9jYXRpb24gPT0gMF0pDQpgYGANCg0KVmlzdWFsaXNhdGlvbiBsJ2VmZmV0IGR1IHRyYWl0ZW1lbnQuDQoNCmBgYHtyfQ0KZWZmZXRfdHJlYXQ9dHJlYXRtZW50X21lYW4gLSBjb250cm9sX21lYW4NCmVmZmV0X3RyZWF0DQpgYGANCg0KT24gdmV1dCB0ZXN0ZXIgY2V0IGVzdGltYXRldXIgcGFyIHVuIHRlc3QgZGUgc3R1ZGVudDoNCg0KYGBge3J9DQpyZXN1bHQ8LXQudGVzdChzaW11bGF0ZWRfcmVzdWx0c1thbGxvY2F0aW9uPT0xXS1zaW11bGF0ZWRfcmVzdWx0c1thbGxvY2F0aW9uPT0wXSx5PU5VTEwsYWx0ZXJuYXRpdmUgPSAidHdvLnNpZGVkIixtdSA9IG1lYW5fY29udHJvbC1tZWFuX3RyZWF0bWVudCx2YXIuZXF1YWwgPVRSVUUpDQpyZXN1bHQNCmBgYA0KDQpPbiBvYnRpZW50IHVuZSBQLXZhbHVlIGluZsOpcmlldXIgw6AgMC4wNSBkb25jIGxlIHRlc3QgZXN0IHNpZ25pZmljYXRpZi4gVW4gcsOpc3VsdGF0IHF1aSBwZXV0IMOqdHJlIHbDqXJpZmllciBhdXRyZW1lbnQNCg0KYGBge3J9DQpkZiA8LSByZXN1bHQkcGFyYW1ldGVyDQp0b2JzIDwtIHJlc3VsdCRzdGF0aXN0aWMNCmFscGhhIDwtIDAuMDUNCmNyaXRpY2FsX3ZhbHVlIDwtIHF0KDEgLSBhbHBoYS8yLCBkZikNCmlmIChhYnModG9icykgPiBjcml0aWNhbF92YWx1ZSkgew0KICBjYXQoIkxlIHRlc3QgZXN0IHNpZ25pZmljYXRpZi5cbiIpDQp9IGVsc2Ugew0KICBjYXQoIkxlIHRlc3Qgbidlc3QgcGFzIHNpZ25pZmljYXRpZi5cbiIpDQp9DQpgYGANCg0KIyMgT2JzZXJ2YXRpb25hbCBEYXRhOg0KDQojIyMgT0xTIGVzdGltYXRvci1SZWdyZXNzaW9uIGFkanVzdG1lbnQtZ2Zvcm11bGENCg0KYGBge3J9DQpOdD0xNTANCk5jPTEzMw0KbWVhblhfYWdlVDwtNjUNCnNkX1hUIDwtIDUNCm1lYW5YX2FnZUMgPC0yMA0Kc2RfWEMgPC01DQpUbzwtMTANCmFscGhhPC0xNQ0KYGBgDQoNCmBgYHtyfQ0KWHQ8LXJub3JtKE50LCBtZWFuWF9hZ2VULCBzZF9YVCkNClhjPC1ybm9ybShOYywgbWVhblhfYWdlQywgc2RfWEMpDQpgYGANCg0KYGBge3J9DQpZdDwtVG8rYWxwaGEqWHQNClljPC1hbHBoYSpYYw0KWDwtYyhYdCxYYykNCmBgYA0KDQpgYGB7cn0NCiNUcmFjZXIgbGUgcHJlbWllciBncmFwaGlxdWUNCnBsb3QoWHQsIFl0LHR5cGUgPSAicCIsIGNvbCA9ICJibHVlIiwgeGxhYiA9ICJYIiwgeWxhYiA9ICJZIix4bGltPWMoMCw5MCkseWxpbT1jKDEwMCwxNDAwKSkNCg0KI1RyYWNlciBsZSBzZWNvbmQgZ3JhcGhpcXVlDQpsaW5lcyhYYywgWWMsdHlwZSA9ICJwIiwgY29sID0gInJlZCIpDQpgYGANCg0KYGBge3J9DQojcmVncmVzc2lvbiBsaW5lYWlyZToNCnJlczEgPC1sbShZdH5YdCkNCnJlczIgPC1sbShZY35YYykNCmBgYA0KDQpgYGB7cn0NCllfZXN0MSA8LSBhcy5tYXRyaXgoY2JpbmQocmVzMSRmaXR0ZWQudmFsdWVzKSkNCllfZXN0MiA8LSBhcy5tYXRyaXgoY2JpbmQocmVzMiRmaXR0ZWQudmFsdWVzKSkNClg8LXNlcShmcm9tID0gMCwgdG8gPSA4NSwgbGVuZ3RoLm91dCA9IDEwMDApDQp0aGV0YS5lc3QxIDwtIHJlczEkY29lZmZpY2llbnRzDQp0aGV0YS5lc3QyIDwtIHJlczIkY29lZmZpY2llbnRzDQpgYGANCg0KYGBge3J9DQojVHJhY2VyIGxlIHByZW1pZXIgZ3JhcGhpcXVlDQpwbG90KFh0LCBZdCx0eXBlID0gInAiLCBjb2wgPSAiYmx1ZSIsIHhsYWIgPSAiWCIsIHlsYWIgPSAiWSIseGxpbT1jKDAsOTApLHlsaW09YygxMDAsMTQwMCkpDQojVHJhY2VyIGxlIHNlY29uZCBncmFwaGlxdWUNCmxpbmVzKFhjLCBZYyx0eXBlID0gInAiLCBjb2wgPSAicmVkIikNCmxpbmVzKFgsdGhldGEuZXN0MVsyXSpYK3RoZXRhLmVzdDFbMV0sdHlwZT0ibCIsY29sPSJibHVlIikNCmxpbmVzKFgsdGhldGEuZXN0MlsyXSpYK3RoZXRhLmVzdDJbMV0sdHlwZT0ibCIsY29sPSJyZWQiKQ0KYGBgDQoNCmBgYHtyfQ0KdGF1PC10aGV0YS5lc3QxWzFdK3N1bSh0aGV0YS5lc3QxWzJdKlgpLXRoZXRhLmVzdDJbMV0tc3VtKHRoZXRhLmVzdDJbMl0qWCkNCnRhdQ0KYGBgDQoNCmBgYHtyfQ0KDQpgYGANCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpDb21tZW7Dp29ucyBwYXIgZMOpZmluaXIgZGV1eCBncm91cGVzOg0KDQotICAgKipHcm91cGUgdHJhaXRlbWVudDoqKiBjJ2VzdCBsZSBncm91cGUgZGVzIHBlcnNvbm5lcyDDoCBxdWkgb24gYSBhdHRyaWJ1w6kgdW4gdHJhaXRlbWVudCAoVD0xKS4NCg0KLSAgICoqR3JvdXBlIGRlIGNvbnRyw7RsZToqKiBjJ2VzdCBsZSBncm91cGUgZGVzIHBlcnNvbm5lcyDDoCBxdWkgb24gbidhIHBhcyBhdHRyaXZ1w6kgZGUgdHJhaXRlbWVudCAoVD0wKS4NCg0KYGBge3J9DQojUGFyYW1ldHJlcw0KTj0xMDAwDQpwPTQgICAgICAgICAgICAgICAgICAgICAgICAjTGUgbm9tYnJlIGRlIGNvdmFyaWFudGVzDQptdT1yZXAoMTIwLHApICAgICAgICAgICAgICAjbW95ZW5uZSBwb3VyIGNoYXF1ZSB2ZWN0ZXVyIGRlIGNvdmFyaWFudGVzDQpzaWdtYT1kaWFnKDMwLHApICAgICAgICAgICAjw6ljYXJ0LXR5cGUgcG91ciBjaGFxdWUgdmVjdGV1cg0Kcz1jKDAuMiwwLjcsLTEsMC4zKSAgICAgICAgI2NvZWZmaWNpZW50cyBkZSBjaGFxdWUgY292YXJpYW50ZSBkYW5zIGxhIHJlZ3Jlc3Npb24NClRvPTEwICAgICAgICAgICAgICAgICAgICAgICNwYXJhbcOodHJlIGEgZXN0aW1lcg0KczA9OTANCmBgYA0KDQpgYGB7cn0NCiNjcsOpYXRpb24gZGVzIGNvdmFyaWFibGVzDQpjb3ZhcmlhdGVzPC1ybXZub3JtKG49NTAqTixtdSxzaWdtYSkgI2Nyw6lhdGlvbiBkZSBjb3ZhcmlhYmxlcyBxdWkgc3VpdmVudCBsYSBsb2kgbm9ybWFsZS4NCkRGPC1hcy5kYXRhLmZyYW1lKGNvdmFyaWF0ZXMpDQpuYW1lcyhERik8LXBhc3RlKCJYIiwxOnAsc2VwPSIiKSAjb24gbm9tbWVyYSBsZXMgY292YXJpYWJsZXMgWGkuDQpjb3ZhcmlhdGVzX25hbWVzIDwtbmFtZXMoREYpDQpUPC1zYW1wbGUoYygwLCAxKSwgc2l6ZSA9IDUwKk4sIHJlcGxhY2UgPSBUUlVFLCBwcm9iID0gYygwLjUsIDAuNSkpDQpERiRUPC1UDQpldGEgPC0gYXMudmVjdG9yKGNvdmFyaWF0ZXMlKiVzK1RvKlQrczApDQpERiRZPC1ldGENCiNyZXBhcnRpdGlvbiBwYXIgZ3JvdXBlIGRlIHRyYWl0ZW1lbnQgZXQgZGUgY29udHJvbA0KY29udHJvbF9ncm91cDwtc3Vic2V0KERGJFksIERGJFQgPT0gMCkNCnRyZWF0bWVudF9ncm91cDwtc3Vic2V0KERGJFksREYkVD09MSkNCmBgYA0KDQpgYGB7cn0NCiMgQW5hbHlzZSBzdGF0aXN0aXF1ZSBkZXMgZXN0aW1hdGlvbnMNCnRyZWF0bWVudF9tZWFuX2VzdCA8LSBtZWFuKHRyZWF0bWVudF9ncm91cCkNCmNvbnRyb2xfbWVhbl9lc3QgPC0gbWVhbihjb250cm9sX2dyb3VwKQ0KYGBgDQoNCmBgYHtyfQ0KZWZmZXRfdHJlYXQ9dHJlYXRtZW50X21lYW5fZXN0IC0gY29udHJvbF9tZWFuX2VzdA0KZWZmZXRfdHJlYXQNCmBgYA0KDQpPbiB2ZXV0IHRlc3RlciBjZXQgZXN0aW1hdGV1ciBwYXIgdW4gdGVzdCBkZSBzdHVkZW50Og0KDQpgYGB7cn0NCnJlc3VsdDwtdC50ZXN0KHRyZWF0bWVudF9ncm91cC1jb250cm9sX2dyb3VwLHk9TlVMTCxhbHRlcm5hdGl2ZSA9ICJncmVhdGVyIixtdSA9IFRvLHZhci5lcXVhbCA9RkFMU0UpDQpyZXN1bHQNCmBgYA0KDQpgYGB7cn0NCmRmIDwtIHJlc3VsdCRwYXJhbWV0ZXINCnRvYnMgPC0gcmVzdWx0JHN0YXRpc3RpYw0KYWxwaGEgPC0gMC4wNQ0KY3JpdGljYWxfdmFsdWUgPC0gcXQoMSAtIGFscGhhLzIsIGRmKQ0KaWYgKGFicyh0b2JzKSA+IGNyaXRpY2FsX3ZhbHVlKSB7DQogIGNhdCgiTGUgdGVzdCBlc3Qgc2lnbmlmaWNhdGlmLlxuIikNCn0gZWxzZSB7DQogIGNhdCgiTGUgdGVzdCBuJ2VzdCBwYXMgc2lnbmlmaWNhdGlmLlxuIikNCn0NCmBgYA0KDQojIyBPYnNlcnZhdGlvbmFsIERhdGE6DQoNCiMjIyBPTFMgZXN0aW1hdG9yLVJlZ3Jlc3Npb24gYWRqdXN0bWVudC1nZm9ybXVsYQ0KDQpgYGB7cn0NCk50PTE1MA0KTmM9MTMzDQptZWFuWF9hZ2VUPC02NQ0Kc2RfWFQgPC0gNQ0KbWVhblhfYWdlQyA8LTIwDQpzZF9YQyA8LTUNClRvPC0xMA0KYWxwaGE8LTE1DQpgYGANCg0KYGBge3J9DQpYdDwtcm5vcm0oTnQsIG1lYW5YX2FnZVQsIHNkX1hUKQ0KWGM8LXJub3JtKE5jLCBtZWFuWF9hZ2VDLCBzZF9YQykNCmBgYA0KDQpgYGB7cn0NCll0PC1UbythbHBoYSpYdA0KWWM8LWFscGhhKlhjDQpYPC1jKFh0LFhjKQ0KYGBgDQoNCmBgYHtyfQ0KI1RyYWNlciBsZSBwcmVtaWVyIGdyYXBoaXF1ZQ0KcGxvdChYdCwgWXQsdHlwZSA9ICJwIiwgY29sID0gImJsdWUiLCB4bGFiID0gIlgiLCB5bGFiID0gIlkiLHhsaW09YygwLDkwKSx5bGltPWMoMTAwLDE0MDApKQ0KDQojVHJhY2VyIGxlIHNlY29uZCBncmFwaGlxdWUNCmxpbmVzKFhjLCBZYyx0eXBlID0gInAiLCBjb2wgPSAicmVkIikNCmBgYA0KDQpgYGB7cn0NCiNyZWdyZXNzaW9uIGxpbmVhaXJlOg0KcmVzMSA8LWxtKFl0flh0KQ0KcmVzMiA8LWxtKFljflhjKQ0KYGBgDQoNCmBgYHtyfQ0KWV9lc3QxIDwtIGFzLm1hdHJpeChjYmluZChyZXMxJGZpdHRlZC52YWx1ZXMpKQ0KWV9lc3QyIDwtIGFzLm1hdHJpeChjYmluZChyZXMyJGZpdHRlZC52YWx1ZXMpKQ0KWDwtc2VxKGZyb20gPSAwLCB0byA9IDg1LCBsZW5ndGgub3V0ID0gMTAwMCkNCnRoZXRhLmVzdDEgPC0gcmVzMSRjb2VmZmljaWVudHMNCnRoZXRhLmVzdDIgPC0gcmVzMiRjb2VmZmljaWVudHMNCmBgYA0KDQpgYGB7cn0NCiNUcmFjZXIgbGUgcHJlbWllciBncmFwaGlxdWUNCnBsb3QoWHQsIFl0LHR5cGUgPSAicCIsIGNvbCA9ICJibHVlIiwgeGxhYiA9ICJYIiwgeWxhYiA9ICJZIix4bGltPWMoMCw5MCkseWxpbT1jKDEwMCwxNDAwKSkNCiNUcmFjZXIgbGUgc2Vjb25kIGdyYXBoaXF1ZQ0KbGluZXMoWGMsIFljLHR5cGUgPSAicCIsIGNvbCA9ICJyZWQiKQ0KbGluZXMoWCx0aGV0YS5lc3QxWzJdKlgrdGhldGEuZXN0MVsxXSx0eXBlPSJsIixjb2w9ImJsdWUiKQ0KbGluZXMoWCx0aGV0YS5lc3QyWzJdKlgrdGhldGEuZXN0MlsxXSx0eXBlPSJsIixjb2w9InJlZCIpDQpgYGANCg0KYGBge3J9DQp0YXU8LXRoZXRhLmVzdDFbMV0rc3VtKHRoZXRhLmVzdDFbMl0qWCktdGhldGEuZXN0MlsxXS1zdW0odGhldGEuZXN0MlsyXSpYKQ0KdGF1DQpgYGANCg0KYGBge3J9DQptZWFuWF9hZ2U8LTQzDQpzZF9YPC0xMA0KWDwtIHJub3JtKE50LCBtZWFuWF9hZ2UsIHNkX1gpDQoNCmBgYA0KDQojIyBQU1cNCg0KYGBge3J9DQpjb21wdXRlX2lwc3cgPC0gZnVuY3Rpb24oREYsIG5vcm1hbGl6ZWQgPSBGQUxTRSl7DQogIA0KICBOIDwtIG5yb3coREYpDQogIG4gPC0gbnJvdyhERltERiRUID09MSwgXSkNCiAgbSA8LSBucm93KERGW0RGJFQgPT0wLCBdKQ0KICANCiAgDQogICMgRXN0aW1hdGlvbiBvZiBQKFQgPSAxIHwgWCkNCiAgIyBwIDwtLSBQKFQgPSAxIHwgWCkgDQogIA0KICMgd2l0aCBsb2dpc3RpYyByZWdyZXNzaW9uDQogICAgcC5maXQgIDwtIGdsbShERiRUIH4uLCBmYW1pbHkgPSBiaW5vbWlhbCgibG9naXQiKSwgZGF0YSA9IHRlbXBbLCAhbmFtZXModGVtcCkgJWluJSBjKCJBIiwgIlkiKV0pDQogICAgcCA8LSBwcmVkaWN0KHAuZml0LCB0eXBlID0gInJlc3BvbnNlIiwgbmV3ZGF0YSA9IHRlbXApDQogICAgDQogIH0gDQogIGVsc2UgaWYgKGVzdGltYXRpb24gPT0gImZvcmVzdCIpIHsNCiAgICBicmVhaw0KICB9IA0KICBlbHNlIHsNCiAgICBwcmludCgiRXN0aW1hdGlvbiBwYXJhbWV0ZXIgc2hvdWxkIGJlIGZvcmVzdCBvciBsb2dpdC4iKQ0KICAgIGJyZWFrDQogIH0NCiAgDQogICMgU3RvcmUgb2Rkcw0KICB0ZW1wJG9kZHMgPC0gKCgxIC0gcCkvcCkNCiAgDQogICMgS2VlcCBvbmx5IFJDVCBmb3IgdGhlIHJlc3Qgb2YgdGhlIGNhbGN1bHVzDQogIHRlbXAgPC0gdGVtcFt0ZW1wJFQgPT0gMSxdDQogIA0KICBpZiAobm9ybWFsaXplZCA9PSBGQUxTRSl7DQogICAgdGF1X2lwc3cgPC0gKDIvbSkqd2l0aCh0ZW1wLCBzdW0ob2RkcypBKlkgLSBvZGRzKigxLUEpKlkpKSAgDQogIH0gZWxzZSB7DQogICAgdGF1X2lwc3cgPC0gd2l0aCh0ZW1wLCBzdW0ob2RkcypBKlkvc3VtKG9kZHMqQSkgLSBvZGRzKigxLUEpKlkvc3VtKG9kZHMqKDEtQSkpKSkNCiAgfQ0KICANCiAgcmV0dXJuKHRhdV9pcHN3KQ0KfQ0KDQpgYGANCg0KYGBge3J9DQoNCmBgYA0K</div>
 
 
 
