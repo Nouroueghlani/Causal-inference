@@ -1,71 +1,82 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
-Commençons par définir deux groupes:
+### Importation du package R:
 
--   **Groupe traitement:** c'est le groupe des personnes à qui on a attribué un traitement (T=1).
+```{r}
+library(mvtnorm)
+```
 
--   **Groupe de contrôle:** c'est le groupe des personnes à qui on n'a pas attrivué de traitement (T=0).
+## RCT(Randomized control trial):
 
-On a opté pour la distribution des deux groupes pour une loi normale qui sera cependant de moyennes distinctes relativement à chaque groupe.
+On s'intéresse dans cette partie à la création d'un RCT.
 
-On fixe également la taille N des deux échantillons à 1000 pour chaque groupe.
+On définit les paramètres, qu'on utilisera dans cette approche.
 
 ```{r}
 #Parametres
-N=1000
-mean_treatment <- 110 # Moyenne de Ytreatment
-sd_treatment <- 10    # Ecart-type du groupe de treatment
-mean_control <- 120   # Moyenne de Ycontol
-sd_control <- 10      # Ecart-type du groupe de control
+N=1000                     
+p=4                        #Le nombre de variables confondantes
+mu=rep(120,p)              #moyenne pour chaque vecteur de variable confondante
+sigma=diag(30,p)           #écart-type pour chaque vecteur de variable confondante
+s=c(0.2,0.7,-1,0.3)        #coefficients de chaque variable confondante dans la regression
+s0<- 90                    #constante de la régression
+To=10                      #paramètre a estimer, effet du traitement
+
+
 ```
+
+Dans cette partie, on génére une base de donnée composée de $50 \times N$ individu, qu'on étudie sur la base des covariables générées: On notera $X=(X_1, X_2, X_3, X_4)$ les quatre variables confondantes, telle: $$\forall i \ge 0, X_i \sim \mathcal{N}(\mu,\xi)$$ Afin de simplifier, on optera ici: $\forall i=1..4, \mu_i=120$ et $\xi_i=30$ On note la variable binaire T, le traitement dont on tente d'estimer l'effet sur les individus. Dans un RCT, l'attribution du traitement est indépendante de $X_i, i=1..4$. On générera ainsi un vecteur T telle que $T\sim \mathcal{B}(1,\frac{1}{2})$. Pour de raison de simplification, on opte également pour un outcome $Y$, telle que: $$Y=X \times \beta+ \tau \times T$$ Autrement dit $\forall j, Y_j=\beta_0+\beta_1 \times X_j1+\beta_2 \times X_j2+ \beta_3 \times X_j3 + \beta_4 \times X_j4 + \tau \times T_j + \xi_j$
 
 ```{r}
-treatment_group <- rnorm(N, mean_treatment, sd_treatment) #Vecteur outcome du groupe de treatment
-control_group <- rnorm(N, mean_control, sd_control) #Vecteur outcome du groupe de control
+#création des covariables
+covariates<-rmvnorm(n=50*N,mu,sigma) #création de covariables qui suivent la loi normale.
+DF<-as.data.frame(covariates)
+names(DF)<-paste("X",1:p,sep="") #on nommera les covariables Xi.
+covariates_names <-names(DF)
+T<-sample(c(0, 1), size = 50*N, replace = TRUE, prob = c(0.5, 0.5))
+DF$T<-T
+err<- rnorm(50*N, mean = 0, sd = sqrt(0.002))
+eta <- as.vector(covariates%*%s+To*T+s0+err)
+DF$Y<-eta
+#repartition par groupe de traitement et de control
+control_group<-subset(DF$Y, DF$T == 0)
+treatment_group<-subset(DF$Y,DF$T==1)
 ```
 
-```{r}
-# Attribution aléatoire du traitement 
-allocation <- sample(c(0, 1), size = N, replace = TRUE) #Vecteur contenant des valeurs dans {0,1} générée par une loi uniforme.
-```
+### Estimation de l'effet du traitement:
 
-Le vecteur allocation nous permettra d'attribuer le traitement aux individus d'une façon aléatoire et indépendante.
+On définit:
 
-```{r}
-# Simulation des résultats
-simulated_results <- ifelse(allocation == 0, control_group, treatment_group)
-```
+-   Le groupe de traitement: Le groupe des individus qui ont reçu un traitement (T=1).
 
-Pour accèder au groupe de treatement (resp groupe control), on utilise:
-
--   simulated_results[allocation == 1] : groupe des traités avec une variation aléatoire
-
--   simulated_results[allocation == 0] : groupe des non-traités avec une variation aléatoire
+-   Le groupe de contrôle: Le groupe des individus qui n'ont pas reçu de traitement (T=0).
 
 ```{r}
 # Analyse statistique des estimations
-treatment_mean <- mean(simulated_results[allocation == 1])
-control_mean <- mean(simulated_results[allocation == 0])
+treatment_mean_est <- mean(treatment_group)
+control_mean_est <- mean(control_group)
 ```
 
-Visualisation l'effet du traitement.
+On veut à partir de l'RCT, trouver l'effet du traitement, on s'intéresse alors au calcul de: $$ \mathbb{E}(Y(1)-Y(0))$$ Il s'agit d'une quantité causale, non observable. Etant donnée que dans un RCT, il y'a pas de correlation entre $T$ et $X_i, \forall i \ge0$. Ainsi, on peut estimer la quantité précédante par $\mathbb{E}(Y|T=1)-\mathbb{E}(Y|T=0)$.
+
+En effet, $$\mathbb{E}(Y(1)-Y(0))= \mathbb{E}(Y(1)|T=1)-\mathbb{E}(Y(0)|T=0)$$ $$=\mathbb{E}(Y|T=1)-\mathbb{E}(Y|T=0)$$
 
 ```{r}
-effet_treat=treatment_mean - control_mean
+effet_treat=treatment_mean_est - control_mean_est
 effet_treat
 ```
 
-On veut tester cet estimateur par un test de student:
+On veut tester cet estimateur $\hat{\tau}_{DM}$ par un test de student le comparant à la constante définie To:
 
 ```{r}
-result<-t.test(simulated_results[allocation==1]-simulated_results[allocation==0],y=NULL,alternative = "two.sided",mu = mean_control-mean_treatment,var.equal =TRUE)
+result<-t.test(treatment_group-control_group,y=NULL,mu = To,var.equal =FALSE)
 result
 ```
-
-On obtient une P-value inférieur à 0.05 donc le test est significatif. Un résultat qui peut être vérifier autrement
 
 ```{r}
 df <- result$parameter
@@ -79,11 +90,55 @@ if (abs(tobs) > critical_value) {
 }
 ```
 
-## Observational Data:
-
-### OLS estimator-Regression adjustment-gformula
+On veut refaire la simulation, 1000 fois pour estimer le biais de l'estimateur mais encore l'efficacité du test:
 
 ```{r}
+vecteur <- vector("numeric", length = 0)
+sum=0
+
+for (i in 1:1000)
+{
+  covariates<-rmvnorm(n=50*N,mu,sigma) #création de covariables qui suivent la loi normale.
+  DF<-as.data.frame(covariates)
+  names(DF)<-paste("X",1:p,sep="") #on nommera les covariables Xi.
+  covariates_names <-names(DF)
+  T<-sample(c(0, 1), size = 50*N, replace = TRUE, prob = c(0.5, 0.5))
+  DF$T<-T
+  err<- rnorm(50*N, mean = 0, sd = sqrt(0.002))
+  eta <- as.vector(covariates%*%s+To*T+s0+err)
+  DF$Y<-eta
+  #repartition par groupe de traitement et de control
+  control_group<-subset(DF$Y, DF$T == 0)
+  treatment_group<-subset(DF$Y,DF$T==1)
+  treatment_mean_est <- mean(treatment_group)
+  control_mean_est <- mean(control_group)
+  vecteur[i]=treatment_mean_est-control_mean_est
+  suppressWarnings({
+  result <- t.test(treatment_group-control_group, y = NULL, mu = To, var.equal = FALSE)
+  })
+  if(result$p.value<0.05)
+  {
+    sum<-sum+1
+  }
+}
+boxplot(vecteur)
+
+```
+
+On pourra calculer le pourcentage d'efficacité sur les 1000 simulations:
+
+```{r}
+sum/10
+```
+
+## Observational Data:
+
+### OLS estimator-Regression adjustment-Gformula
+
+On définit les paramètres suivants:
+
+```{r}
+#parameter
 Nt=150
 Nc=133
 meanX_ageT<-65
@@ -94,16 +149,24 @@ To<-10
 alpha<-15
 ```
 
+On génère les deux vecteurs $X_t$ et $X_c$ aléatoirement, telle que: $$ X_t:= X|T=1 \sim \mathcal{N}(m_{X_T}, \xi_{X_T})$$ et $$ X_c=X|T=0 \sim \mathcal{N}(m_{X_C}, \xi_{X_C})$$
+
 ```{r}
 Xt<-rnorm(Nt, meanX_ageT, sd_XT)
 Xc<-rnorm(Nc, meanX_ageC, sd_XC)
 ```
 
+On définit le vecteur outcome $Y$, tel que: $$ Y = T\times \to + \alpha \times X + \xi$$ Où: $X$ est l'unique variable confondante pour laquelle on opte pour ce problème qui se décompose en $X_t$ et $X_c$. $\xi$ est l'erreur avec $\xi \sim \mathcal{N}(0,\sigma^{2})$.
+
 ```{r}
-Yt<-To+alpha*Xt
-Yc<-alpha*Xc
+errT<-rnorm(Nt, mean = 0, sd = sqrt(1))
+errc<-rnorm(Nc, mean = 0, sd = sqrt(1))
+Yt<-To+alpha*Xt+errT
+Yc<-alpha*Xc+errc
 X<-c(Xt,Xc)
 ```
+
+On trace sur le même graphe $Y_t=Y|T=1$ en fonction de $X_t$ et $Y_c=Y|T=0$ en fonction de $X_c$.
 
 ```{r}
 #Tracer le premier graphique
@@ -112,6 +175,8 @@ plot(Xt, Yt,type = "p", col = "blue", xlab = "X", ylab = "Y",xlim=c(0,90),ylim=c
 #Tracer le second graphique
 lines(Xc, Yc,type = "p", col = "red")
 ```
+
+On tente ensuite de faire une régression linéaire du vecteur $Y$ en fonction $X_t$ et $X_c$ dans le but d'estimer $\tau$.
 
 ```{r}
 #regression lineaire:
@@ -122,10 +187,19 @@ res2 <-lm(Yc~Xc)
 ```{r}
 Y_est1 <- as.matrix(cbind(res1$fitted.values))
 Y_est2 <- as.matrix(cbind(res2$fitted.values))
-X<-seq(from = 0, to = 85, length.out = 1000)
 theta.est1 <- res1$coefficients
 theta.est2 <- res2$coefficients
+
 ```
+
+On définit un vecteur X:
+
+```{r}
+Nx=1000
+X<-seq(from = 0, to = 85, length.out = Nx)
+```
+
+On tente d'estimer à travers X, la valeur de $\tau$ qu'on appellera $\hat{\tau}$.
 
 ```{r}
 #Tracer le premier graphique
@@ -136,11 +210,60 @@ lines(X,theta.est1[2]*X+theta.est1[1],type="l",col="blue")
 lines(X,theta.est2[2]*X+theta.est2[1],type="l",col="red")
 ```
 
+Par la formule de $\hat{\tau}_{OLS}$: $$ \hat{\tau}_{OLS}=\frac{1}{n}\sum_{i=1}^{n}(\hat{c}_{(1)}+X_i\hat{b}_{(1)})-(\hat{c}_{(0)}+X_i\hat{b}_{(0)})$$
+
 ```{r}
-tau<-theta.est1[1]+sum(theta.est1[2]*X)-theta.est2[1]-sum(theta.est2[2]*X)
+tau<-theta.est1[1]+1/1000*sum(theta.est1[2]*X)-theta.est2[1]-1/1000*sum(theta.est2[2]*X)
 tau
 ```
 
-```{r}
+## PSW
 
+Cette méthode consiste à repondérer les Outcomes de sorte à modifier la distribution afin qu'elle soit similaire à la distribution d'une RCT. La méthode est nommée Inverse-propensity weighting après le Propensity score qui s'écrit de la façon suivante: $$ e(X):=\mathbb{P}(W_i|X_i=x) \forall x\in \mathcal{X} $$ Sous l'hypothèse d'unconfoundedness ($\left\{Y_i(1),Y_i(0)\right\}\bot W_i|e(X_i)$) on aura que :
+
+$\tau=\mathbb{E}[Y_i(1)-Y_i(0)$
+
+$=\mathbb{E}[\mathbb{E}[Y_i(1)|X_i]-\mathbb{E}Y_i(0)|X_i]]$
+
+$=\mathbb{E}[\frac{\mathbb{E}[W_i|X_i] \mathbb{E}[Y_i(1)|X_i]}{e(X_i)}-\frac{\mathbb{E}[(1-w_i)Y_i(0)|X_i]}{1-e(X_i)}]$ $=\mathbb{E}[\frac{\mathbb{E}[W_i Y_i|X_i]}{e(X_i)}-\frac{\mathbb{E[(1-W_i)Y_i(0)|X_i]}}{1-e(X_i)}]$
+
+$=\mathbb{E}[\frac{ W_i Y_i}{e(X_i)}-\frac{(1-W_i)Y_i}{1-e(X_i)}]$
+
+D'où l'estimateur s'écrit: $$\hat{\tau}_{IPW}=\frac{1}{n}\sum_{i=1}^{n}(\frac{W_i Yw_i}{e(X_i)}-\frac{(1-W_i)Y_i}{1-e(X_i)})$$
+
+```{r}
+compute_ipw <- function(DF, normalized = FALSE){
+  
+  n <- nrow(DF[DF$T ==1, ])
+  m <- nrow(DF[DF$T ==0, ])
+  
+  
+  # Estimation of P(T = 1 | X)
+  # p <-- P(T = 1 | X) 
+  temp <- DF
+  #with logistic regression
+    p.fit  <- glm(temp$T ~., family = binomial("logit"), data = temp[, !names(temp) %in% c("T", "Y")])
+    p <- predict(p.fit, type = "response", newdata = temp) ###
+  
+  # Store odds
+  temp$odds <-p
+  
+  # Keep only RCT for the rest of the calculus
+  
+  if (normalized == FALSE){
+    tau_ipw <- (2/m)*with(temp,(1/(50*N))*sum(T*Y/odds - (1-T)*Y/(1-odds)))  
+  } else {
+    tau_ipw <- with(temp, (1/(50*N))*sum(T*Y/odds - (1-T)*Y/(1-odds)))
+  }
+  
+  return(tau_ipw)
+}
+
+```
+
+```{r}
+compute_ipw(DF)
+```
+
+```         
 ```
